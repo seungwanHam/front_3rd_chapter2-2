@@ -1,15 +1,13 @@
 import { useState } from "react"
 import { Coupon, Discount, Product } from "../../types"
+import { useCoupon, useProduct } from "../store/store.tsx"
 
-export const AdminPage = ({ useAdmin }) => {
-  const { setProducts, setCoupons, products, coupons } = useAdmin()
+export const AdminPage = () => {
+  const { products, setProducts } = useProduct()
+  const { coupons, setCoupons } = useCoupon()
 
   const onProductUpdate = (updatedProduct: Product) => {
     setProducts((prevProducts) => prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
-  }
-
-  const onProductAdd = (newProduct: Product) => {
-    setProducts((prevProducts) => [...prevProducts, newProduct])
   }
 
   const onCouponAdd = (newCoupon: Coupon) => {
@@ -26,12 +24,6 @@ export const AdminPage = ({ useAdmin }) => {
     discountValue: 0,
   })
   const [showNewProductForm, setShowNewProductForm] = useState(false)
-  const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({
-    name: "",
-    price: 0,
-    stock: 0,
-    discounts: [],
-  })
 
   const toggleProductAccordion = (productId: string) => {
     setOpenProductIds((prev) => {
@@ -116,18 +108,6 @@ export const AdminPage = ({ useAdmin }) => {
       discountType: "percentage",
       discountValue: 0,
     })
-  }
-
-  const handleAddNewProduct = () => {
-    const productWithId = { ...newProduct, id: Date.now().toString() }
-    onProductAdd(productWithId)
-    setNewProduct({
-      name: "",
-      price: 0,
-      stock: 0,
-      discounts: [],
-    })
-    setShowNewProductForm(false)
   }
 
   function AdminProductModifyForm(product) {
@@ -322,6 +302,27 @@ export const AdminPage = ({ useAdmin }) => {
   }
 
   function NewProductForm() {
+    const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({
+      name: "",
+      price: 0,
+      stock: 0,
+      discounts: [],
+    })
+
+    function handleAddNewProduct() {
+      const productWithId = { ...newProduct, id: Date.now().toString() }
+      setProducts((prevProducts) => [...prevProducts, productWithId])
+
+      setNewProduct({
+        name: "",
+        price: 0,
+        stock: 0,
+        discounts: [],
+      })
+
+      setShowNewProductForm(false)
+    }
+
     return (
       <div className="bg-white p-4 rounded shadow mb-4">
         <h3 className="text-xl font-semibold mb-2">새 상품 추가</h3>
@@ -381,7 +382,7 @@ export const AdminPage = ({ useAdmin }) => {
           {showNewProductForm ? "취소" : "새 상품 추가"}
         </button>
 
-        {showNewProductForm && NewProductForm()}
+        {showNewProductForm && <NewProductForm />}
 
         <div className="space-y-2">{products.map((product, index) => AdminProductView(product, index))}</div>
       </div>
@@ -392,9 +393,9 @@ export const AdminPage = ({ useAdmin }) => {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">관리자 페이지</h1>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {SectionAdminProductList()}
+        <SectionAdminProductList />
 
-        {SectionAdminCoupon()}
+        <SectionAdminCoupon />
       </div>
     </div>
   )

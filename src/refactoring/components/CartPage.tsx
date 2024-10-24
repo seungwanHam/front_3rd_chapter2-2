@@ -1,9 +1,6 @@
-import { createContext, Key, useContext, useState } from "react"
-import { CartItem, Coupon, Product } from "../../types.ts"
-
-type Cart = CartItem[]
-
-type ProductId = Product["id"]
+import { Key } from "react"
+import { Cart, CartItem, Coupon, Product, ProductId } from "../../types.ts"
+import { useCart, useCoupon, useProduct } from "../store/store.tsx"
 
 //
 // entities/CartItem
@@ -82,68 +79,6 @@ const calculateTotal = (cart: Cart, selectedCoupon: Coupon | null) => {
     totalDiscount: Math.round(totalDiscount),
   }
 }
-
-//
-//
-export const createContextHook = <T, U>(useStoreState: (props: U) => T) => {
-  const Context = createContext({} as T)
-
-  function ContextProvider({ children, ...props }: U) {
-    return <Context.Provider value={useStoreState(props)}>{children}</Context.Provider>
-  }
-
-  function useStoreContext() {
-    const context = useContext(Context)
-    if (!context) {
-      throw new Error("must be used within ContextProvider")
-    }
-    return context as ReturnType<typeof useStoreState>
-  }
-
-  return [ContextProvider, useStoreContext] as const
-}
-
-export const [CartPageContextProvider, useCartPage] = createContextHook(({ products, coupons }) => {
-  const [cart, setCart] = useState<Cart>([])
-  const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null)
-
-  const useProduct = () => {
-    return new (class {
-      products = products
-    })()
-  }
-
-  const useCart = () => {
-    // @NOTE: 이렇게 하는게 더 가독성이 좋으나 이 방식은 typescript 참조를 잘 못한다. (좀 개선좀 해주라. ㅠ)
-    // return {
-    //   cart,
-    //   setCart,
-    // }
-
-    return new (class {
-      cart = cart
-      setCart = setCart
-    })()
-  }
-
-  const useCoupon = () => {
-    return new (class {
-      coupons = coupons
-      selectedCoupon = selectedCoupon
-      setSelectedCoupon = setSelectedCoupon
-    })()
-  }
-
-  return new (class {
-    useProduct = useProduct
-    useCart = useCart
-    useCoupon = useCoupon
-  })()
-})
-
-const useProduct = () => useCartPage().useProduct()
-const useCart = () => useCartPage().useCart()
-const useCoupon = () => useCartPage().useCoupon()
 
 // pages/CartPage
 export const CartPage = () => {
