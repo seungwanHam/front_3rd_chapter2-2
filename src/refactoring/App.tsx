@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { CartPage } from "./components/CartPage.tsx"
+import { CartPage, CartPageContextProvider } from "./components/CartPage.tsx"
 import { AdminPage } from "./components/AdminPage.tsx"
 import { Coupon, Product } from "../types.ts"
 
@@ -85,7 +85,9 @@ const App = () => {
             onCouponAdd={handleCouponAdd}
           />
         ) : (
-          <CartPage products={products} coupons={coupons} />
+          <CartPageContextProvider products={products} coupons={coupons}>
+            <CartPage />
+          </CartPageContextProvider>
         )}
       </main>
     </div>
