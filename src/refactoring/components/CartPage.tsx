@@ -34,13 +34,21 @@ const updateCartItemQuantity = (cart: Cart, productId: ProductId, newQuantity: n
 
 //
 // entities/Product
-const getMaxDiscount = (discounts: { quantity: number; rate: number }[]) => {
+const getProductMaxDiscountRate = (discounts: { quantity: number; rate: number }[]) => {
   return discounts.reduce((max, discount) => Math.max(max, discount.rate), 0)
 }
 
-const getRemainingStock = (product: Product, cart: Cart) => {
+const getProductRemainingStock = (product: Product, cart: Cart) => {
   const cartItem = getCartItemByProductId(cart, product.id)
   return product.stock - (cartItem?.quantity || 0)
+}
+
+//
+// ? features/Cart
+function getCartItemMaxDiscountRate(item: CartItem) {
+  return item.product.discounts.reduce((maxDiscount, d) => {
+    return item.quantity >= d.quantity && d.rate > maxDiscount ? d.rate : maxDiscount
+  }, 0)
 }
 
 // pages/CartPage
@@ -49,7 +57,7 @@ export const CartPage = ({ products, coupons }: Props) => {
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null)
 
   function addToCart(product: Product) {
-    const remainingStock = getRemainingStock(product, cart)
+    const remainingStock = getProductRemainingStock(product, cart)
     if (remainingStock <= 0) return
 
     setCart((prevCart) => {
@@ -67,32 +75,29 @@ export const CartPage = ({ products, coupons }: Props) => {
   }
 
   const calculateTotal = () => {
-    let totalBeforeDiscount = 0
-    let totalAfterDiscount = 0
+    const totalBeforeDiscount = cart.reduce((totalBeforeDiscount, item) => {
+      return totalBeforeDiscount + item.product.price * item.quantity
+    }, 0)
 
-    cart.forEach((item) => {
-      const { price } = item.product
-      const { quantity } = item
-      totalBeforeDiscount += price * quantity
-
-      const discount = item.product.discounts.reduce((maxDiscount, d) => {
-        return quantity >= d.quantity && d.rate > maxDiscount ? d.rate : maxDiscount
+    const totalAfterDiscount = (() => {
+      let totalAfterDiscount = cart.reduce((totalAfterDiscount, item) => {
+        const discount = getCartItemMaxDiscountRate(item)
+        return totalAfterDiscount + item.product.price * item.quantity * (1 - discount)
       }, 0)
 
-      totalAfterDiscount += price * quantity * (1 - discount)
-    })
-
-    let totalDiscount = totalBeforeDiscount - totalAfterDiscount
-
-    // 쿠폰 적용
-    if (selectedCoupon) {
-      if (selectedCoupon.discountType === "amount") {
-        totalAfterDiscount = Math.max(0, totalAfterDiscount - selectedCoupon.discountValue)
-      } else {
-        totalAfterDiscount *= 1 - selectedCoupon.discountValue / 100
+      // 쿠폰 적용
+      if (selectedCoupon) {
+        if (selectedCoupon.discountType === "amount") {
+          totalAfterDiscount = Math.max(0, totalAfterDiscount - selectedCoupon.discountValue)
+        } else {
+          totalAfterDiscount *= 1 - selectedCoupon.discountValue / 100
+        }
       }
-      totalDiscount = totalBeforeDiscount - totalAfterDiscount
-    }
+
+      return totalAfterDiscount
+    })()
+
+    const totalDiscount = totalBeforeDiscount - totalAfterDiscount
 
     return {
       totalBeforeDiscount: Math.round(totalBeforeDiscount),
@@ -231,7 +236,7 @@ export const CartPage = ({ products, coupons }: Props) => {
   }
 
   function ProductView({ product }: { key: Key; product: Product }) {
-    const remainingStock = getRemainingStock(product, cart)
+    const remainingStock = getProductRemainingStock(product, cart)
 
     return (
       <div data-testid={`product-${product.id}`} className="bg-white p-3 rounded shadow">
@@ -246,7 +251,7 @@ export const CartPage = ({ products, coupons }: Props) => {
           </span>
           {product.discounts.length > 0 && (
             <span className="ml-2 font-medium text-blue-600">
-              최대 {(getMaxDiscount(product.discounts) * 100).toFixed(0)}% 할인
+              최대 {(getProductMaxDiscountRate(product.discounts) * 100).toFixed(0)}% 할인
             </span>
           )}
         </div>
