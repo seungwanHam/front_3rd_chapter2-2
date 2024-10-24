@@ -95,7 +95,6 @@ export const CartPage = ({ products, coupons }: Props) => {
     <div className="container mx-auto p-4">
       <h1 className="text-3xl font-bold mb-6">장바구니</h1>
 
-      {/*상품 목록*/}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/*상품 목록*/}
         {SectionProductList()}
@@ -105,6 +104,80 @@ export const CartPage = ({ products, coupons }: Props) => {
       </div>
     </div>
   )
+
+  // pages/CartPage/ui
+  function SectionProductList() {
+    return (
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">상품 목록</h2>
+        <div className="space-y-2">
+          {products.map((product) => (
+            <ProductView key={product.id} product={product} />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  function SectionCartInfo() {
+    return (
+      <div>
+        <h2 className="text-2xl font-semibold mb-4">장바구니 내역</h2>
+
+        <SectionCartItemList />
+
+        {/*쿠폰 적용*/}
+        <SectionCouponApply />
+
+        {/*주문 요약*/}
+        <SectionCartSummary />
+      </div>
+    )
+  }
+
+  function SectionCartItemList() {
+    return (
+      <div className="space-y-2">
+        {cart.map((cartItem) => (
+          <CartItemView key={cartItem.product.id} cartItem={cartItem} />
+        ))}
+      </div>
+    )
+  }
+
+  function SectionCouponApply() {
+    return (
+      <div className="mt-6 bg-white p-4 rounded shadow">
+        <h2 className="text-2xl font-semibold mb-2">쿠폰 적용</h2>
+
+        <CouponSelector />
+
+        {selectedCoupon && (
+          <p className="text-green-600">
+            적용된 쿠폰: {selectedCoupon.name}(
+            {selectedCoupon.discountType === "amount"
+              ? `${selectedCoupon.discountValue}원`
+              : `${selectedCoupon.discountValue}%`}{" "}
+            할인)
+          </p>
+        )}
+      </div>
+    )
+  }
+
+  function SectionCartSummary() {
+    const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal(cart, selectedCoupon)
+    return (
+      <div className="mt-6 bg-white p-4 rounded shadow">
+        <h2 className="text-2xl font-semibold mb-2">주문 요약</h2>
+        <div className="space-y-1">
+          <p>상품 금액: {totalBeforeDiscount.toLocaleString()}원</p>
+          <p className="text-green-600">할인 금액: {totalDiscount.toLocaleString()}원</p>
+          <p className="text-xl font-bold">최종 결제 금액: {totalAfterDiscount.toLocaleString()}원</p>
+        </div>
+      </div>
+    )
+  }
 
   // features/Coupon/ui
   function CouponSelector() {
@@ -122,62 +195,6 @@ export const CartPage = ({ products, coupons }: Props) => {
           <CouponOption key={coupon.code} index={index} coupon={coupon} />
         ))}
       </select>
-    )
-  }
-
-  function SectionCartInfo() {
-    const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal(cart, selectedCoupon)
-
-    return (
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">장바구니 내역</h2>
-
-        <div className="space-y-2">
-          {cart.map((cartItem) => (
-            <CartItemView key={cartItem.product.id} cartItem={cartItem} />
-          ))}
-        </div>
-
-        {/*쿠폰 적용*/}
-        <div className="mt-6 bg-white p-4 rounded shadow">
-          <h2 className="text-2xl font-semibold mb-2">쿠폰 적용</h2>
-
-          <CouponSelector />
-
-          {selectedCoupon && (
-            <p className="text-green-600">
-              적용된 쿠폰: {selectedCoupon.name}(
-              {selectedCoupon.discountType === "amount"
-                ? `${selectedCoupon.discountValue}원`
-                : `${selectedCoupon.discountValue}%`}{" "}
-              할인)
-            </p>
-          )}
-        </div>
-
-        {/*주문 요약*/}
-        <div className="mt-6 bg-white p-4 rounded shadow">
-          <h2 className="text-2xl font-semibold mb-2">주문 요약</h2>
-          <div className="space-y-1">
-            <p>상품 금액: {totalBeforeDiscount.toLocaleString()}원</p>
-            <p className="text-green-600">할인 금액: {totalDiscount.toLocaleString()}원</p>
-            <p className="text-xl font-bold">최종 결제 금액: {totalAfterDiscount.toLocaleString()}원</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
-  function SectionProductList() {
-    return (
-      <div>
-        <h2 className="text-2xl font-semibold mb-4">상품 목록</h2>
-        <div className="space-y-2">
-          {products.map((product) => (
-            <ProductView key={product.id} product={product} />
-          ))}
-        </div>
-      </div>
     )
   }
 
@@ -217,20 +234,20 @@ export const CartPage = ({ products, coupons }: Props) => {
 
         <div>
           <button
-            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity - 1)}
             className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
+            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity - 1)}
           >
             -
           </button>
           <button
-            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity + 1)}
             className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
+            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity + 1)}
           >
             +
           </button>
           <button
-            onClick={() => handleFromCart(cartItem.product.id)}
             className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
+            onClick={() => handleFromCart(cartItem.product.id)}
           >
             삭제
           </button>
@@ -252,13 +269,13 @@ export const CartPage = ({ products, coupons }: Props) => {
 
     return (
       <button
-        onClick={() => handleAddToCart(product)}
         className={`w-full px-3 py-1 rounded ${
           remainingStock > 0
             ? "bg-blue-500 text-white hover:bg-blue-600"
             : "bg-gray-300 text-gray-500 cursor-not-allowed"
         }`}
         disabled={remainingStock <= 0}
+        onClick={() => handleAddToCart(product)}
       >
         {remainingStock > 0 ? "장바구니에 추가" : "품절"}
       </button>
@@ -280,6 +297,7 @@ export const CartPage = ({ products, coupons }: Props) => {
           <span className={`font-medium ${remainingStock > 0 ? "text-green-600" : "text-red-600"}`}>
             재고: {remainingStock}개
           </span>
+
           {product.discounts.length > 0 && (
             <span className="ml-2 font-medium text-blue-600">
               최대 {(getProductMaxDiscountRate(product.discounts) * 100).toFixed(0)}% 할인
