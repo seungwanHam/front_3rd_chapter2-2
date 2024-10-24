@@ -1,6 +1,5 @@
-import React from 'react';
-import { Product, CartItem } from '../../../types.ts';
-import { ProductCard } from '../../components/ProductCard';
+import { Product, CartItem } from "../../../types.ts";
+import { ProductCard } from "./ProductCard.tsx";
 
 interface ProductListProps {
   products: Product[];
@@ -10,18 +9,18 @@ interface ProductListProps {
   getRemainingStock: (product: Product, cart: CartItem[]) => number;
 }
 
-export const ProductList: React.FC<ProductListProps> = ({ 
-  products, 
-  addToCart, 
-  cart, 
-  getMaxDiscount, 
-  getRemainingStock 
-}) => {
+export const ProductList = ({
+  products,
+  addToCart,
+  cart,
+  getMaxDiscount,
+  getRemainingStock,
+}: ProductListProps) => {
   return (
     <div>
       <h2 className="text-2xl font-semibold mb-4">상품 목록</h2>
       <div className="space-y-2">
-        {products.map(product => (
+        {products.map((product) => (
           <ProductCard
             key={product.id}
             product={product}

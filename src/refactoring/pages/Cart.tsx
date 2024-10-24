@@ -1,18 +1,18 @@
 import React from 'react';
-import { Product, Coupon } from '../../../types.ts';
-import { useCart } from "../../hooks/useCart.ts";
-import { ProductList } from './ProductList';
-import { CartList } from './CartList';
-import { CouponSelector } from './CouponSelector';
-import { OrderSummary } from './OrderSummary';
-import { getMaxDiscount, getRemainingStock } from '../../utils/cartUtils';
+import { Product, Coupon } from '../../types.ts';
+import { useCart } from "../hooks/useCart.ts";
+import { ProductList } from '../features/Cart/ProductList.tsx';
+import { CartList } from '../features/Cart/CartList.tsx';
+import { CouponSelector } from '../features/Cart/CouponSelector.tsx';
+import { OrderSummary } from '../features/Cart/OrderSummary.tsx';
+import { getMaxDiscount, getRemainingStock } from '../utils/cartUtils.ts';
 
 interface CartPageProps {
   products: Product[];
   coupons: Coupon[];
 }
 
-export const CartPage: React.FC<CartPageProps> = ({ products, coupons }) => {
+export const Cart: React.FC<CartPageProps> = ({ products, coupons }) => {
   const {
     cart,
     addToCart,

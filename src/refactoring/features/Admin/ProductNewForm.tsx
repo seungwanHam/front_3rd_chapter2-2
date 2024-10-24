@@ -1,27 +1,15 @@
-import React, { useState } from 'react';
-import { Product } from '../../../types';
-import { Input } from "../../components/Input";
-import { Button } from "../../components/Button";
+import { Product } from "../../../types";
+import { Input } from "../../shared/ui/Input";
+import { Button } from "../../shared/ui/Button";
+import { useProductNewForm } from "../../hooks/useProductNewForm";
 
-interface NewProductFormProps {
+interface ProductNewFormProps {
   onProductAdd: (newProduct: Product) => void;
   onCancel: () => void;
 }
 
-export const NewProductForm: React.FC<NewProductFormProps> = ({ onProductAdd, onCancel }) => {
-  const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
-    name: '',
-    price: 0,
-    stock: 0,
-    discounts: []
-  });
-
-  const handleAddNewProduct = () => {
-    const productWithId = { ...newProduct, id: Date.now().toString() };
-    onProductAdd(productWithId);
-    setNewProduct({ name: '', price: 0, stock: 0, discounts: [] });
-    onCancel();
-  };
+export const ProductNewForm = ({ onProductAdd, onCancel }: ProductNewFormProps) => {
+  const { newProduct, handleProductChange, handleAddNewProduct } = useProductNewForm(onProductAdd, onCancel);
 
   return (
     <div className="bg-white p-4 rounded shadow mb-4">
@@ -32,7 +20,7 @@ export const NewProductForm: React.FC<NewProductFormProps> = ({ onProductAdd, on
           label="상품명"
           type="text"
           value={newProduct.name}
-          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          onChange={(e) => handleProductChange("name", e.target.value)}
           className="w-full p-2 border rounded"
         />
       </div>
@@ -42,7 +30,9 @@ export const NewProductForm: React.FC<NewProductFormProps> = ({ onProductAdd, on
           label="가격"
           type="number"
           value={newProduct.price}
-          onChange={(e) => setNewProduct({ ...newProduct, price: parseInt(e.target.value) })}
+          onChange={(e) =>
+            handleProductChange("price", parseInt(e.target.value))
+          }
           className="w-full p-2 border rounded"
         />
       </div>
@@ -52,7 +42,7 @@ export const NewProductForm: React.FC<NewProductFormProps> = ({ onProductAdd, on
           label="재고"
           type="number"
           value={newProduct.stock}
-          onChange={(e) => setNewProduct({ ...newProduct, stock: parseInt(e.target.value) })}
+          onChange={(e) => handleProductChange("stock", parseInt(e.target.value))}
           className="w-full p-2 border rounded"
         />
       </div>

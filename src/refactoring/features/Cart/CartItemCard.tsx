@@ -1,6 +1,5 @@
-import React from 'react';
-import { CartItem } from '../../types';
-import { Button } from './Button';
+import { CartItem } from '../../../types';
+import { Button } from '../../shared/ui/Button';
 
 interface CartItemCardProps {
   item: CartItem;
@@ -9,7 +8,7 @@ interface CartItemCardProps {
   onRemove: () => void;
 }
 
-export const CartItemCard: React.FC<CartItemCardProps> = ({ item, appliedDiscount, onUpdateQuantity, onRemove }) => {
+export const CartItemCard = ({ item, appliedDiscount, onUpdateQuantity, onRemove }: CartItemCardProps) => {
   const { product, quantity } = item;
   const discountedPrice = product.price * (1 - appliedDiscount);
 

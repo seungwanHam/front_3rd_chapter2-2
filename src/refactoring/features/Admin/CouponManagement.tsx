@@ -1,4 +1,3 @@
-import React from 'react';
 import { Coupon } from '../../../types';
 import { useCouponManagement } from '../../hooks/useCouponManagement';
 
@@ -7,7 +6,7 @@ interface CouponManagementProps {
   onCouponAdd: (newCoupon: Coupon) => void;
 }
 
-export const CouponManagement: React.FC<CouponManagementProps> = ({ coupons, onCouponAdd }) => {
+export const CouponManagement = ({ coupons, onCouponAdd }: CouponManagementProps) => {
   const { newCoupon, handleCouponChange, handleAddCoupon } = useCouponManagement(onCouponAdd);
 
   return (

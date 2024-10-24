@@ -1,14 +1,13 @@
-import React from 'react';
 import { Product } from '../../../types';
 import { useProductManagement } from '../../hooks/useProductManagement';
-import { ProductEditCard } from '../../components/ProductEditCard';
+import { ProductEditCard } from './ProductEditCard';
 
-interface Props {
+interface ProductManagementProps {
   products: Product[];
   onProductUpdate: (updatedProduct: Product) => void;
 }
 
-export const ProductManagement: React.FC<Props> = ({ products, onProductUpdate }) => {
+export const ProductManagement = ({ products, onProductUpdate }: ProductManagementProps) => {
   const {
     openProductIds,
     editingProductId,

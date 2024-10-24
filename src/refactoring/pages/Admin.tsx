@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { Coupon, Product } from '../../../types.ts';
-import { Button } from "../../components/Button.tsx";
-import { NewProductForm } from "./NewProuctForm.tsx";
-import { ProductManagement } from "./ProductManagement.tsx";
-import { CouponManagement } from "./CouponManagement.tsx";
+import { Coupon, Product } from '../../types.ts';
+import { Button } from "../shared/ui/Button.tsx";
+import { ProductNewForm } from "../features/Admin/ProductNewForm.tsx";
+import { ProductManagement } from "../features/Admin/ProductManagement.tsx";
+import { CouponManagement } from "../features/Admin/CouponManagement.tsx";
 
 interface Props {
   products: Product[];
@@ -13,8 +13,8 @@ interface Props {
   onCouponAdd: (newCoupon: Coupon) => void;
 }
 
-export const AdminPage = ({ products, coupons, onProductUpdate, onProductAdd, onCouponAdd }: Props) => {
-  const [showNewProductForm, setShowNewProductForm] = useState(false);
+export const Admin = ({ products, coupons, onProductUpdate, onProductAdd, onCouponAdd }: Props) => {
+  const [showProductNewForm, setShowProductNewForm] = useState(false);
 
 
   return (
@@ -24,13 +24,13 @@ export const AdminPage = ({ products, coupons, onProductUpdate, onProductAdd, on
         <div>
           <h2 className="text-2xl font-semibold mb-4">상품 관리</h2>
           <Button
-            onClick={() => setShowNewProductForm(!showNewProductForm)}
+            onClick={() => setShowProductNewForm(!showProductNewForm)}
             className="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600"
           >
-            {showNewProductForm ? '취소' : '새 상품 추가'}
+            {showProductNewForm ? '취소' : '새 상품 추가'}
           </Button>
-          {showNewProductForm && (
-            <NewProductForm onProductAdd={onProductAdd} onCancel={() => setShowNewProductForm(false)} />
+          {showProductNewForm && (
+            <ProductNewForm onProductAdd={onProductAdd} onCancel={() => setShowProductNewForm(false)} />
           )}
           <ProductManagement products={products} onProductUpdate={onProductUpdate} />
         </div>

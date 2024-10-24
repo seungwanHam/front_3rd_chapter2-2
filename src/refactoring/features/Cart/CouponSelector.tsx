@@ -1,7 +1,6 @@
-import React from 'react';
 import { Coupon } from '../../../types.ts';
-import { Select } from '../../components/Select';
-import { CouponCard } from '../../components/CouponCard';
+import { Select } from '../../shared/ui/Select.tsx';
+import { CouponCard } from './CouponCard.tsx';
 
 interface CouponSelectorProps {
   coupons: Coupon[];
@@ -9,7 +8,7 @@ interface CouponSelectorProps {
   selectedCoupon: Coupon | null;
 }
 
-export const CouponSelector: React.FC<CouponSelectorProps> = ({ coupons, applyCoupon, selectedCoupon }) => {
+export const CouponSelector = ({ coupons, applyCoupon, selectedCoupon }: CouponSelectorProps) => {
   return (
     <div className="mt-6 bg-white p-4 rounded shadow">
       <h2 className="text-2xl font-semibold mb-2">쿠폰 적용</h2>

@@ -1,6 +1,5 @@
-import React from 'react';
-import { Product } from '../../types';
-import { Button } from './Button';
+import { Product } from '../../../types';
+import { Button } from '../../shared/ui/Button';
 
 interface ProductCardProps {
   product: Product;
@@ -9,7 +8,7 @@ interface ProductCardProps {
   onAddToCart: () => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, remainingStock, maxDiscount, onAddToCart }) => {
+export const ProductCard = ({ product, remainingStock, maxDiscount, onAddToCart }: ProductCardProps) => {
   return (
     <div data-testid={`product-${product.id}`} className="bg-white p-3 rounded shadow">
       <div className="flex justify-between items-center mb-2">

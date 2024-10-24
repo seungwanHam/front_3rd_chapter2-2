@@ -1,6 +1,5 @@
-import React from 'react';
-import { Coupon } from '../../types';
-import { formatCouponDiscount } from '../utils/couponUtils';
+import { Coupon } from '../../../types';
+import { formatCouponDiscount } from '../../utils/couponUtils';
 
 interface CouponCardProps {
   coupon: Coupon;
@@ -8,7 +7,7 @@ interface CouponCardProps {
   onSelect?: () => void;
 }
 
-export const CouponCard: React.FC<CouponCardProps> = ({ coupon, isSelected = false, onSelect }) => {
+export const CouponCard = ({ coupon, isSelected = false, onSelect }: CouponCardProps) => {
   return (
     <div 
       className={`p-4 border rounded-lg cursor-pointer transition-colors ${

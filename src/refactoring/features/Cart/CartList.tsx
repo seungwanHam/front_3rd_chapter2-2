@@ -1,6 +1,5 @@
-import React from 'react';
 import { CartItem } from '../../../types';
-import { CartItemCard } from '../../components/CartItemCard';
+import { CartItemCard } from './CartItemCard';
 import { getAppliedDiscount } from '../../utils/cartUtils';
 
 interface CartListProps {
@@ -9,7 +8,7 @@ interface CartListProps {
   removeFromCart: (productId: string) => void;
 }
 
-export const CartList: React.FC<CartListProps> = ({ cart, updateQuantity, removeFromCart }) => {
+export const CartList = ({ cart, updateQuantity, removeFromCart }: CartListProps) => {
 
   return (
     <div>

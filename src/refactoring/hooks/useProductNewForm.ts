@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Product } from '../../types.ts';
 
-export const useNewProductForm = (onProductAdd: (newProduct: Product) => void) => {
+export const useProductNewForm = (onProductAdd: (newProduct: Product) => void, onCancel: () => void) => {
   const [newProduct, setNewProduct] = useState<Omit<Product, 'id'>>({
     name: '',
     price: 0,
@@ -16,13 +16,9 @@ export const useNewProductForm = (onProductAdd: (newProduct: Product) => void) =
   const handleAddNewProduct = useCallback(() => {
     const productWithId = { ...newProduct, id: Date.now().toString() };
     onProductAdd(productWithId);
-    setNewProduct({
-      name: '',
-      price: 0,
-      stock: 0,
-      discounts: []
-    });
-  }, [newProduct, onProductAdd]);
+    setNewProduct({ name: '', price: 0, stock: 0, discounts: [] });
+    onCancel();
+  }, [newProduct, onProductAdd, onCancel]);
 
   return { newProduct, handleProductChange, handleAddNewProduct };
 };

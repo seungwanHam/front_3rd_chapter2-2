@@ -1,48 +1,9 @@
-import { useState } from 'react';
-import { CartPage } from './containers/CartPage/CartPage.tsx';
-import { AdminPage } from './containers/AdminPage/AdminPage.tsx';
-import { Coupon, Product } from '../types.ts';
+import { useState } from "react";
+import { Cart as CartPage } from "./pages/Cart";
+import { Admin as AdminPage } from "./pages/Admin";
 import { useCoupons, useProducts } from "./hooks";
-import { Button } from "./components/Button.tsx";
-
-const initialProducts: Product[] = [
-  {
-    id: 'p1',
-    name: '상품1',
-    price: 10000,
-    stock: 20,
-    discounts: [{ quantity: 10, rate: 0.1 }, { quantity: 20, rate: 0.2 }]
-  },
-  {
-    id: 'p2',
-    name: '상품2',
-    price: 20000,
-    stock: 20,
-    discounts: [{ quantity: 10, rate: 0.15 }]
-  },
-  {
-    id: 'p3',
-    name: '상품3',
-    price: 30000,
-    stock: 20,
-    discounts: [{ quantity: 10, rate: 0.2 }]
-  }
-];
-
-const initialCoupons: Coupon[] = [
-  {
-    name: '5000원 할인 쿠폰',
-    code: 'AMOUNT5000',
-    discountType: 'amount',
-    discountValue: 5000
-  },
-  {
-    name: '10% 할인 쿠폰',
-    code: 'PERCENT10',
-    discountType: 'percentage',
-    discountValue: 10
-  }
-];
+import { Button } from "./shared/ui/Button";
+import { initialProducts, initialCoupons } from "./shared/data/data.ts";
 
 const App = () => {
   const { products, updateProduct, addProduct } = useProducts(initialProducts);
@@ -54,11 +15,8 @@ const App = () => {
       <nav className="bg-blue-600 text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">쇼핑몰 관리 시스템</h1>
-          <Button
-            onClick={() => setIsAdmin(!isAdmin)}
-            variant="secondary"
-          >
-            {isAdmin ? '장바구니 페이지로' : '관리자 페이지로'}
+          <Button onClick={() => setIsAdmin(!isAdmin)} variant="secondary">
+            {isAdmin ? "장바구니 페이지로" : "관리자 페이지로"}
           </Button>
         </div>
       </nav>
@@ -72,7 +30,7 @@ const App = () => {
             onCouponAdd={addCoupon}
           />
         ) : (
-          <CartPage products={products} coupons={coupons}/>
+          <CartPage products={products} coupons={coupons} />
         )}
       </main>
     </div>

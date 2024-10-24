@@ -1,7 +1,6 @@
-import React from 'react';
-import { Product, Discount } from '../../types';
-import { Button } from "./Button";
-import { Input } from "./Input";
+import { Product, Discount } from '../../../types';
+import { Button } from "../../shared/ui/Button";
+import { Input } from "../../shared/ui/Input";
 
 interface ProductEditCardProps {
   product: Product;
@@ -18,7 +17,7 @@ interface ProductEditCardProps {
   setNewDiscountField: (field: keyof Discount, value: number) => void;
 }
 
-export const ProductEditCard: React.FC<ProductEditCardProps> = ({
+export const ProductEditCard = ({
   product,
   index,
   isOpen,
@@ -31,7 +30,7 @@ export const ProductEditCard: React.FC<ProductEditCardProps> = ({
   onRemoveDiscount,
   onEditComplete,
   setNewDiscountField
-}) => {
+}: ProductEditCardProps) => {
   return (
     <div data-testid={`product-${index + 1}`} className="bg-white p-4 rounded shadow">
       <Button
