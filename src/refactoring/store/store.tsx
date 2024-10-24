@@ -57,13 +57,30 @@ export const [CartPageContextProvider, useCartPage] = createContextHook(() => {
     })()
   }
 
+  const useAdmin = () => {
+    const [showNewProductForm, setShowNewProductForm] = useState(false)
+    const [editingProduct, setEditingProduct] = useState<Product | null>(null)
+    const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set())
+
+    return new (class {
+      showNewProductForm = showNewProductForm
+      setShowNewProductForm = setShowNewProductForm
+      editingProduct = editingProduct
+      setEditingProduct = setEditingProduct
+      openProductIds = openProductIds
+      setOpenProductIds = setOpenProductIds
+    })()
+  }
+
   return new (class {
-    useProduct = useProduct
-    useCart = useCart
-    useCoupon = useCoupon
+    useProduct = useProduct()
+    useCart = useCart()
+    useCoupon = useCoupon()
+    useAdmin = useAdmin()
   })()
 })
 
-export const useProduct = () => useCartPage().useProduct()
-export const useCart = () => useCartPage().useCart()
-export const useCoupon = () => useCartPage().useCoupon()
+export const useProduct = () => useCartPage().useProduct
+export const useCart = () => useCartPage().useCart
+export const useCoupon = () => useCartPage().useCoupon
+export const useAdmin = () => useCartPage().useAdmin

@@ -1,117 +1,88 @@
-import { useState } from "react"
+import { Key, useState } from "react"
 import { Coupon, Discount, Product } from "../../types"
-import { useCoupon, useProduct } from "../store/store.tsx"
+import { useAdmin, useCoupon, useProduct } from "../store/store.tsx"
 
 export const AdminPage = () => {
-  const { products, setProducts } = useProduct()
-  const { coupons, setCoupons } = useCoupon()
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">관리자 페이지</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SectionAdminProductList />
 
-  const onProductUpdate = (updatedProduct: Product) => {
-    setProducts((prevProducts) => prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
-  }
+        <SectionAdminCoupon />
+      </div>
+    </div>
+  )
 
-  const onCouponAdd = (newCoupon: Coupon) => {
-    setCoupons((prevCoupons) => [...prevCoupons, newCoupon])
-  }
-
-  const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set())
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null)
-  const [newDiscount, setNewDiscount] = useState<Discount>({ quantity: 0, rate: 0 })
-  const [newCoupon, setNewCoupon] = useState<Coupon>({
-    name: "",
-    code: "",
-    discountType: "percentage",
-    discountValue: 0,
-  })
-  const [showNewProductForm, setShowNewProductForm] = useState(false)
-
-  const toggleProductAccordion = (productId: string) => {
-    setOpenProductIds((prev) => {
-      const newSet = new Set(prev)
-      if (newSet.has(productId)) {
-        newSet.delete(productId)
-      } else {
-        newSet.add(productId)
-      }
-      return newSet
-    })
-  }
-
-  // handleEditProduct 함수 수정
-  const handleEditProduct = (product: Product) => {
-    setEditingProduct({ ...product })
-  }
-
-  // 새로운 핸들러 함수 추가
-  const handleProductNameUpdate = (productId: string, newName: string) => {
-    if (editingProduct && editingProduct.id === productId) {
-      const updatedProduct = { ...editingProduct, name: newName }
-      setEditingProduct(updatedProduct)
-    }
-  }
-
-  // 새로운 핸들러 함수 추가
-  const handlePriceUpdate = (productId: string, newPrice: number) => {
-    if (editingProduct && editingProduct.id === productId) {
-      const updatedProduct = { ...editingProduct, price: newPrice }
-      setEditingProduct(updatedProduct)
-    }
-  }
-
-  // 수정 완료 핸들러 함수 추가
-  const handleEditComplete = () => {
-    if (editingProduct) {
-      onProductUpdate(editingProduct)
-      setEditingProduct(null)
-    }
-  }
-
-  const handleStockUpdate = (productId: string, newStock: number) => {
-    const updatedProduct = products.find((p) => p.id === productId)
-    if (updatedProduct) {
-      const newProduct = { ...updatedProduct, stock: newStock }
-      onProductUpdate(newProduct)
-      setEditingProduct(newProduct)
-    }
-  }
-
-  const handleAddDiscount = (productId: string) => {
-    const updatedProduct = products.find((p) => p.id === productId)
-    if (updatedProduct && editingProduct) {
-      const newProduct = {
-        ...updatedProduct,
-        discounts: [...updatedProduct.discounts, newDiscount],
-      }
-      onProductUpdate(newProduct)
-      setEditingProduct(newProduct)
-      setNewDiscount({ quantity: 0, rate: 0 })
-    }
-  }
-
-  const handleRemoveDiscount = (productId: string, index: number) => {
-    const updatedProduct = products.find((p) => p.id === productId)
-    if (updatedProduct) {
-      const newProduct = {
-        ...updatedProduct,
-        discounts: updatedProduct.discounts.filter((_, i) => i !== index),
-      }
-      onProductUpdate(newProduct)
-      setEditingProduct(newProduct)
-    }
-  }
-
-  const handleAddCoupon = () => {
-    onCouponAdd(newCoupon)
-    setNewCoupon({
-      name: "",
-      code: "",
-      discountType: "percentage",
-      discountValue: 0,
-    })
-  }
-
-  function AdminProductModifyForm(product) {
+  function AdminProductModifyForm({ product }: { product: Product }) {
+    const { editingProduct, setEditingProduct } = useAdmin()
     if (!editingProduct) return <></>
+
+    const { products, setProducts } = useProduct()
+    const [newDiscount, setNewDiscount] = useState<Discount>({ quantity: 0, rate: 0 })
+
+    // 새로운 핸들러 함수 추가
+    const handleProductNameUpdate = (productId: string, newName: string) => {
+      if (editingProduct && editingProduct.id === productId) {
+        const updatedProduct = { ...editingProduct, name: newName }
+        setEditingProduct(updatedProduct)
+      }
+    }
+
+    // 새로운 핸들러 함수 추가
+    const handlePriceUpdate = (productId: string, newPrice: number) => {
+      if (editingProduct && editingProduct.id === productId) {
+        const updatedProduct = { ...editingProduct, price: newPrice }
+        setEditingProduct(updatedProduct)
+      }
+    }
+
+    const onProductUpdate = (updatedProduct: Product) => {
+      setProducts((prevProducts) => prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
+    }
+
+    // 수정 완료 핸들러 함수 추가
+    const handleEditComplete = () => {
+      if (editingProduct) {
+        onProductUpdate(editingProduct)
+        setEditingProduct(null)
+      }
+    }
+
+    const handleStockUpdate = (productId: string, newStock: number) => {
+      const updatedProduct = products.find((p) => p.id === productId)
+      if (updatedProduct) {
+        const newProduct = { ...updatedProduct, stock: newStock }
+        onProductUpdate(newProduct)
+        setEditingProduct(newProduct)
+      }
+    }
+
+    const handleRemoveDiscount = (productId: string, index: number) => {
+      const updatedProduct = products.find((p) => p.id === productId)
+      if (updatedProduct) {
+        const newProduct = {
+          ...updatedProduct,
+          discounts: updatedProduct.discounts.filter((_, i) => i !== index),
+        }
+        onProductUpdate(newProduct)
+        setEditingProduct(newProduct)
+      }
+    }
+
+    const handleAddDiscount = (productId: string) => {
+      const updatedProduct = products.find((p) => p.id === productId)
+      if (updatedProduct && editingProduct) {
+        const newProduct = {
+          ...updatedProduct,
+          discounts: [...updatedProduct.discounts, newDiscount],
+        }
+        onProductUpdate(newProduct)
+        setEditingProduct(newProduct)
+        setNewDiscount({ quantity: 0, rate: 0 })
+      }
+    }
+
     return (
       <div>
         <div className="mb-4">
@@ -192,7 +163,14 @@ export const AdminPage = () => {
     )
   }
 
-  function AdminProductDiscountModifyForm(product) {
+  function AdminProductDiscountModifyForm({ product }: { product: Product }) {
+    const { setEditingProduct } = useAdmin()
+
+    // handleEditProduct 함수 수정
+    const handleEditProduct = (product: Product) => {
+      setEditingProduct({ ...product })
+    }
+
     return (
       <div>
         {product.discounts.map((discount, index) => (
@@ -202,10 +180,11 @@ export const AdminPage = () => {
             </span>
           </div>
         ))}
+
         <button
           data-testid="modify-button"
-          onClick={() => handleEditProduct(product)}
           className="bg-blue-500 text-white px-2 py-1 rounded hover:bg-blue-600 mt-2"
+          onClick={() => handleEditProduct(product)}
         >
           수정
         </button>
@@ -213,9 +192,23 @@ export const AdminPage = () => {
     )
   }
 
-  function AdminProductView(product, index) {
+  function AdminProductView({ product, index }: { key: Key; product: Product; index: number }) {
+    const { openProductIds, setOpenProductIds, editingProduct } = useAdmin()
+
+    const toggleProductAccordion = (productId: string) => {
+      setOpenProductIds((prev) => {
+        const newSet = new Set(prev)
+        if (newSet.has(productId)) {
+          newSet.delete(productId)
+        } else {
+          newSet.add(productId)
+        }
+        return newSet
+      })
+    }
+
     return (
-      <div key={product.id} data-testid={`product-${index + 1}`} className="bg-white p-4 rounded shadow">
+      <div data-testid={`product-${index + 1}`} className="bg-white p-4 rounded shadow">
         <button
           data-testid="toggle-button"
           onClick={() => toggleProductAccordion(product.id)}
@@ -224,18 +217,27 @@ export const AdminPage = () => {
           {product.name} - {product.price}원 (재고: {product.stock})
         </button>
 
+        {product.id}
+        {openProductIds}
+
         {openProductIds.has(product.id) && (
-          <div className="mt-2">
-            {editingProduct && editingProduct.id === product.id
-              ? AdminProductModifyForm(product)
-              : AdminProductDiscountModifyForm(product)}
-          </div>
+          <>
+            <div className="mt-2">
+              {editingProduct && editingProduct.id === product.id ? (
+                <AdminProductModifyForm product={product} />
+              ) : (
+                <AdminProductDiscountModifyForm product={product} />
+              )}
+            </div>
+          </>
         )}
       </div>
     )
   }
 
   function SectionCouponList() {
+    const { coupons } = useCoupon()
+
     return (
       <div>
         <h3 className="text-lg font-semibold mb-2">현재 쿠폰 목록</h3>
@@ -252,6 +254,26 @@ export const AdminPage = () => {
   }
 
   function SectionAdminCoupon() {
+    const { setCoupons } = useCoupon()
+
+    const [newCoupon, setNewCoupon] = useState<Coupon>({
+      name: "",
+      code: "",
+      discountType: "percentage",
+      discountValue: 0,
+    })
+
+    function handleAddCoupon() {
+      setCoupons((prevCoupons) => [...prevCoupons, newCoupon])
+
+      setNewCoupon({
+        name: "",
+        code: "",
+        discountType: "percentage",
+        discountValue: 0,
+      })
+    }
+
     return (
       <div>
         <h2 className="text-2xl font-semibold mb-4">쿠폰 관리</h2>
@@ -290,18 +312,22 @@ export const AdminPage = () => {
                 className="w-full p-2 border rounded"
               />
             </div>
+
             <button onClick={handleAddCoupon} className="w-full bg-green-500 text-white p-2 rounded hover:bg-green-600">
               쿠폰 추가
             </button>
           </div>
 
-          {SectionCouponList()}
+          <SectionCouponList />
         </div>
       </div>
     )
   }
 
   function NewProductForm() {
+    const { setShowNewProductForm } = useAdmin()
+    const { setProducts } = useProduct()
+
     const [newProduct, setNewProduct] = useState<Omit<Product, "id">>({
       name: "",
       price: 0,
@@ -371,12 +397,19 @@ export const AdminPage = () => {
   }
 
   function SectionAdminProductList() {
+    const { products } = useProduct()
+    const { setShowNewProductForm, showNewProductForm } = useAdmin()
+
+    function handleToggleNewProductForm() {
+      setShowNewProductForm((showNewProductForm) => !showNewProductForm)
+    }
+
     return (
       <div>
         <h2 className="text-2xl font-semibold mb-4">상품 관리</h2>
 
         <button
-          onClick={() => setShowNewProductForm(!showNewProductForm)}
+          onClick={handleToggleNewProductForm}
           className="bg-green-500 text-white px-4 py-2 rounded mb-4 hover:bg-green-600"
         >
           {showNewProductForm ? "취소" : "새 상품 추가"}
@@ -384,19 +417,12 @@ export const AdminPage = () => {
 
         {showNewProductForm && <NewProductForm />}
 
-        <div className="space-y-2">{products.map((product, index) => AdminProductView(product, index))}</div>
+        <div className="space-y-2">
+          {products.map((product, index) => (
+            <AdminProductView key={product.id} product={product} index={index} />
+          ))}
+        </div>
       </div>
     )
   }
-
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">관리자 페이지</h1>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <SectionAdminProductList />
-
-        <SectionAdminCoupon />
-      </div>
-    </div>
-  )
 }
