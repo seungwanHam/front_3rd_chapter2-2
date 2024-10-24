@@ -14,6 +14,12 @@ type ProductId = Product["id"]
 // entities/CartItem
 const getCartItemByProductId = (cart: Cart, productId: ProductId) => cart.find((item) => item.product.id === productId)
 
+const getCartItemMaxDiscountRate = (item: CartItem) => {
+  return item.product.discounts.reduce((maxDiscount, discount) => {
+    return item.quantity >= discount.quantity && discount.rate > maxDiscount ? discount.rate : maxDiscount
+  }, 0)
+}
+
 const hasCartItem = (cart: Cart, product: Product) => cart.find((item) => item.product.id === product.id)
 
 const increaseQuantityOne = (cart: Cart, product: Product) =>
@@ -44,11 +50,39 @@ const getProductRemainingStock = (product: Product, cart: Cart) => {
 }
 
 //
-// ? features/Cart
-function getCartItemMaxDiscountRate(item: CartItem) {
-  return item.product.discounts.reduce((maxDiscount, d) => {
-    return item.quantity >= d.quantity && d.rate > maxDiscount ? d.rate : maxDiscount
+// features/Cart
+const getAppliedDiscountRateOfCartItem = (cartItem: CartItem) => getCartItemMaxDiscountRate(cartItem)
+
+const calculateTotal = (cart: Cart, selectedCoupon: Coupon | null) => {
+  const totalBeforeDiscount = cart.reduce((totalBeforeDiscount, item) => {
+    return totalBeforeDiscount + item.product.price * item.quantity
   }, 0)
+
+  const totalAfterDiscount = (() => {
+    let totalAfterDiscount = cart.reduce((totalAfterDiscount, item) => {
+      const discount = getCartItemMaxDiscountRate(item)
+      return totalAfterDiscount + item.product.price * item.quantity * (1 - discount)
+    }, 0)
+
+    // 쿠폰 적용
+    if (selectedCoupon) {
+      if (selectedCoupon.discountType === "amount") {
+        totalAfterDiscount = Math.max(0, totalAfterDiscount - selectedCoupon.discountValue)
+      } else {
+        totalAfterDiscount *= 1 - selectedCoupon.discountValue / 100
+      }
+    }
+
+    return totalAfterDiscount
+  })()
+
+  const totalDiscount = totalBeforeDiscount - totalAfterDiscount
+
+  return {
+    totalBeforeDiscount: Math.round(totalBeforeDiscount),
+    totalAfterDiscount: Math.round(totalAfterDiscount),
+    totalDiscount: Math.round(totalDiscount),
+  }
 }
 
 // pages/CartPage
@@ -56,76 +90,44 @@ export const CartPage = ({ products, coupons }: Props) => {
   const [cart, setCart] = useState<Cart>([])
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null)
 
-  function addToCart(product: Product) {
-    const remainingStock = getProductRemainingStock(product, cart)
-    if (remainingStock <= 0) return
+  // pages/CartPage
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">장바구니</h1>
 
-    setCart((prevCart) => {
-      const existingItem = hasCartItem(prevCart, product)
-      return existingItem ? increaseQuantityOne(prevCart, product) : addCartItem(prevCart, product)
-    })
-  }
+      {/*상품 목록*/}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/*상품 목록*/}
+        {SectionProductList()}
 
-  function removeFromCart(productId: string) {
-    setCart((prevCart) => removeCartItem(prevCart, productId))
-  }
+        {/*장바구니 내역*/}
+        {SectionCartInfo()}
+      </div>
+    </div>
+  )
 
-  function updateQuantity(productId: string, newQuantity: number) {
-    setCart((prevCart) => updateCartItemQuantity(prevCart, productId, newQuantity))
-  }
-
-  const calculateTotal = () => {
-    const totalBeforeDiscount = cart.reduce((totalBeforeDiscount, item) => {
-      return totalBeforeDiscount + item.product.price * item.quantity
-    }, 0)
-
-    const totalAfterDiscount = (() => {
-      let totalAfterDiscount = cart.reduce((totalAfterDiscount, item) => {
-        const discount = getCartItemMaxDiscountRate(item)
-        return totalAfterDiscount + item.product.price * item.quantity * (1 - discount)
-      }, 0)
-
-      // 쿠폰 적용
-      if (selectedCoupon) {
-        if (selectedCoupon.discountType === "amount") {
-          totalAfterDiscount = Math.max(0, totalAfterDiscount - selectedCoupon.discountValue)
-        } else {
-          totalAfterDiscount *= 1 - selectedCoupon.discountValue / 100
-        }
-      }
-
-      return totalAfterDiscount
-    })()
-
-    const totalDiscount = totalBeforeDiscount - totalAfterDiscount
-
-    return {
-      totalBeforeDiscount: Math.round(totalBeforeDiscount),
-      totalAfterDiscount: Math.round(totalAfterDiscount),
-      totalDiscount: Math.round(totalDiscount),
+  // features/Coupon/ui
+  function CouponSelector() {
+    function handleApplyCoupon(coupon: Coupon) {
+      setSelectedCoupon(coupon)
     }
-  }
 
-  const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal()
-
-  const getAppliedDiscount = (item: CartItem) => {
-    const { discounts } = item.product
-    const { quantity } = item
-
-    let appliedDiscount = 0
-    for (const discount of discounts) {
-      if (quantity >= discount.quantity) {
-        appliedDiscount = Math.max(appliedDiscount, discount.rate)
-      }
-    }
-    return appliedDiscount
-  }
-
-  const applyCoupon = (coupon: Coupon) => {
-    setSelectedCoupon(coupon)
+    return (
+      <select
+        onChange={(e) => handleApplyCoupon(coupons[parseInt(e.target.value)])}
+        className="w-full p-2 border rounded mb-2"
+      >
+        <option value="">쿠폰 선택</option>
+        {coupons.map((coupon, index) => (
+          <CouponOption key={coupon.code} index={index} coupon={coupon} />
+        ))}
+      </select>
+    )
   }
 
   function SectionCartInfo() {
+    const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal(cart, selectedCoupon)
+
     return (
       <div>
         <h2 className="text-2xl font-semibold mb-4">장바구니 내역</h2>
@@ -139,15 +141,9 @@ export const CartPage = ({ products, coupons }: Props) => {
         {/*쿠폰 적용*/}
         <div className="mt-6 bg-white p-4 rounded shadow">
           <h2 className="text-2xl font-semibold mb-2">쿠폰 적용</h2>
-          <select
-            onChange={(e) => applyCoupon(coupons[parseInt(e.target.value)])}
-            className="w-full p-2 border rounded mb-2"
-          >
-            <option value="">쿠폰 선택</option>
-            {coupons.map((coupon, index) => (
-              <CouponView key={coupon.code} index={index} coupon={coupon} />
-            ))}
-          </select>
+
+          <CouponSelector />
+
           {selectedCoupon && (
             <p className="text-green-600">
               적용된 쿠폰: {selectedCoupon.name}(
@@ -185,22 +181,8 @@ export const CartPage = ({ products, coupons }: Props) => {
     )
   }
 
-  return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">장바구니</h1>
-
-      {/*상품 목록*/}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/*상품 목록*/}
-        {SectionProductList()}
-
-        {/*장바구니 내역*/}
-        {SectionCartInfo()}
-      </div>
-    </div>
-  )
-
-  function CouponView({ index, coupon }: { key: Key; index: number; coupon: Coupon }) {
+  // entities/Coupon/ui/CouponOption
+  function CouponOption({ index, coupon }: { key: Key; index: number; coupon: Coupon }) {
     return (
       <option value={index}>
         {coupon.name} - {coupon.discountType === "amount" ? `${coupon.discountValue}원` : `${coupon.discountValue}%`}
@@ -208,8 +190,17 @@ export const CartPage = ({ products, coupons }: Props) => {
     )
   }
 
+  // features/Cart/ui/ProductView
   function CartItemView({ cartItem }: { key: Key; cartItem: CartItem }) {
-    const appliedDiscount = getAppliedDiscount(cartItem)
+    const appliedDiscount = getAppliedDiscountRateOfCartItem(cartItem)
+
+    function handleUpdateQuantity(productId: string, newQuantity: number) {
+      setCart((prevCart) => updateCartItemQuantity(prevCart, productId, newQuantity))
+    }
+
+    function handleFromCart(productId: string) {
+      setCart((prevCart) => removeCartItem(prevCart, productId))
+    }
 
     return (
       <div className="flex justify-between items-center bg-white p-3 rounded shadow">
@@ -226,19 +217,19 @@ export const CartPage = ({ products, coupons }: Props) => {
 
         <div>
           <button
-            onClick={() => updateQuantity(cartItem.product.id, cartItem.quantity - 1)}
+            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity - 1)}
             className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
           >
             -
           </button>
           <button
-            onClick={() => updateQuantity(cartItem.product.id, cartItem.quantity + 1)}
+            onClick={() => handleUpdateQuantity(cartItem.product.id, cartItem.quantity + 1)}
             className="bg-gray-300 text-gray-800 px-2 py-1 rounded mr-1 hover:bg-gray-400"
           >
             +
           </button>
           <button
-            onClick={() => removeFromCart(cartItem.product.id)}
+            onClick={() => handleFromCart(cartItem.product.id)}
             className="bg-red-500 text-white px-2 py-1 rounded hover:bg-red-600"
           >
             삭제
@@ -248,6 +239,33 @@ export const CartPage = ({ products, coupons }: Props) => {
     )
   }
 
+  // features/product/ui/AddToCartButton
+  function AddToCartButton({ product }: { product: Product }) {
+    const remainingStock = getProductRemainingStock(product, cart)
+
+    function handleAddToCart(product: Product) {
+      if (remainingStock <= 0) return
+      setCart((prevCart) => {
+        return hasCartItem(prevCart, product) ? increaseQuantityOne(prevCart, product) : addCartItem(prevCart, product)
+      })
+    }
+
+    return (
+      <button
+        onClick={() => handleAddToCart(product)}
+        className={`w-full px-3 py-1 rounded ${
+          remainingStock > 0
+            ? "bg-blue-500 text-white hover:bg-blue-600"
+            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+        }`}
+        disabled={remainingStock <= 0}
+      >
+        {remainingStock > 0 ? "장바구니에 추가" : "품절"}
+      </button>
+    )
+  }
+
+  // widgets/product/ui/ProductView
   function ProductView({ product }: { key: Key; product: Product }) {
     const remainingStock = getProductRemainingStock(product, cart)
 
@@ -279,17 +297,7 @@ export const CartPage = ({ products, coupons }: Props) => {
           </ul>
         )}
 
-        <button
-          onClick={() => addToCart(product)}
-          className={`w-full px-3 py-1 rounded ${
-            remainingStock > 0
-              ? "bg-blue-500 text-white hover:bg-blue-600"
-              : "bg-gray-300 text-gray-500 cursor-not-allowed"
-          }`}
-          disabled={remainingStock <= 0}
-        >
-          {remainingStock > 0 ? "장바구니에 추가" : "품절"}
-        </button>
+        <AddToCartButton product={product} />
       </div>
     )
   }
