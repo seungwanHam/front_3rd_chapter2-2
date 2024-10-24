@@ -48,18 +48,15 @@ const initialCoupons: Coupon[] = [
 const App = () => {
   const [products, setProducts] = useState<Product[]>(initialProducts)
   const [coupons, setCoupons] = useState<Coupon[]>(initialCoupons)
-  const [isAdmin, setIsAdmin] = useState(false)
+  const [isAdmin, setIsAdmin] = useState(true)
 
-  const handleProductUpdate = (updatedProduct: Product) => {
-    setProducts((prevProducts) => prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
-  }
-
-  const handleProductAdd = (newProduct: Product) => {
-    setProducts((prevProducts) => [...prevProducts, newProduct])
-  }
-
-  const handleCouponAdd = (newCoupon: Coupon) => {
-    setCoupons((prevCoupons) => [...prevCoupons, newCoupon])
+  const useAdmin = () => {
+    return {
+      products,
+      coupons,
+      setProducts,
+      setCoupons,
+    }
   }
 
   return (
@@ -77,13 +74,7 @@ const App = () => {
       </nav>
       <main className="container mx-auto mt-6">
         {isAdmin ? (
-          <AdminPage
-            products={products}
-            coupons={coupons}
-            onProductUpdate={handleProductUpdate}
-            onProductAdd={handleProductAdd}
-            onCouponAdd={handleCouponAdd}
-          />
+          <AdminPage useAdmin={useAdmin} />
         ) : (
           <CartPageContextProvider products={products} coupons={coupons}>
             <CartPage />

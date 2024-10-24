@@ -1,15 +1,21 @@
 import { useState } from "react"
 import { Coupon, Discount, Product } from "../../types"
 
-interface Props {
-  products: Product[]
-  coupons: Coupon[]
-  onProductUpdate: (updatedProduct: Product) => void
-  onProductAdd: (newProduct: Product) => void
-  onCouponAdd: (newCoupon: Coupon) => void
-}
+export const AdminPage = ({ useAdmin }) => {
+  const { setProducts, setCoupons, products, coupons } = useAdmin()
 
-export const AdminPage = ({ products, coupons, onProductUpdate, onProductAdd, onCouponAdd }: Props) => {
+  const onProductUpdate = (updatedProduct: Product) => {
+    setProducts((prevProducts) => prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p)))
+  }
+
+  const onProductAdd = (newProduct: Product) => {
+    setProducts((prevProducts) => [...prevProducts, newProduct])
+  }
+
+  const onCouponAdd = (newCoupon: Coupon) => {
+    setCoupons((prevCoupons) => [...prevCoupons, newCoupon])
+  }
+
   const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set())
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [newDiscount, setNewDiscount] = useState<Discount>({ quantity: 0, rate: 0 })
