@@ -6,42 +6,64 @@ interface Props {
   coupons: Coupon[]
 }
 
+type Cart = CartItem[]
+
+type ProductId = Product["id"]
+
+//
+// entities/CartItem
+const getCartItemByProductId = (cart: Cart, productId: ProductId) => cart.find((item) => item.product.id === productId)
+
+const hasCartItem = (cart: Cart, product: Product) => cart.find((item) => item.product.id === product.id)
+
+const increaseQuantityOne = (cart: Cart, product: Product) =>
+  cart.map((item) =>
+    item.product.id === product.id ? { ...item, quantity: Math.min(item.quantity + 1, product.stock) } : item,
+  )
+
+const addCartItem = (cart: Cart, product: Product) => [...cart, { product, quantity: 1 }]
+
+const removeCartItem = (cart: Cart, productId: ProductId) => cart.filter((item) => item.product.id !== productId)
+
+const updateCartItemQuantity = (cart: Cart, productId: ProductId, newQuantity: number) =>
+  cart
+    .map((item) => {
+      return item.product.id === productId ? { ...item, quantity: Math.min(newQuantity, item.product.stock) } : item
+    })
+    .filter((item) => item.quantity >= 0)
+
+//
+// entities/Product
+const getMaxDiscount = (discounts: { quantity: number; rate: number }[]) => {
+  return discounts.reduce((max, discount) => Math.max(max, discount.rate), 0)
+}
+
+const getRemainingStock = (product: Product, cart: Cart) => {
+  const cartItem = getCartItemByProductId(cart, product.id)
+  return product.stock - (cartItem?.quantity || 0)
+}
+
+// pages/CartPage
 export const CartPage = ({ products, coupons }: Props) => {
-  const [cart, setCart] = useState<CartItem[]>([])
+  const [cart, setCart] = useState<Cart>([])
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null)
 
-  const addToCart = (product: Product) => {
-    const remainingStock = getRemainingStock(product)
+  function addToCart(product: Product) {
+    const remainingStock = getRemainingStock(product, cart)
     if (remainingStock <= 0) return
 
     setCart((prevCart) => {
-      const existingItem = prevCart.find((item) => item.product.id === product.id)
-      if (existingItem) {
-        return prevCart.map((item) =>
-          item.product.id === product.id ? { ...item, quantity: Math.min(item.quantity + 1, product.stock) } : item,
-        )
-      }
-      return [...prevCart, { product, quantity: 1 }]
+      const existingItem = hasCartItem(prevCart, product)
+      return existingItem ? increaseQuantityOne(prevCart, product) : addCartItem(prevCart, product)
     })
   }
 
-  const removeFromCart = (productId: string) => {
-    setCart((prevCart) => prevCart.filter((item) => item.product.id !== productId))
+  function removeFromCart(productId: string) {
+    setCart((prevCart) => removeCartItem(prevCart, productId))
   }
 
-  const updateQuantity = (productId: string, newQuantity: number) => {
-    setCart((prevCart) =>
-      prevCart
-        .map((item) => {
-          if (item.product.id === productId) {
-            const maxQuantity = item.product.stock
-            const updatedQuantity = Math.max(0, Math.min(newQuantity, maxQuantity))
-            return updatedQuantity > 0 ? { ...item, quantity: updatedQuantity } : null
-          }
-          return item
-        })
-        .filter((item): item is CartItem => item !== null),
-    )
+  function updateQuantity(productId: string, newQuantity: number) {
+    setCart((prevCart) => updateCartItemQuantity(prevCart, productId, newQuantity))
   }
 
   const calculateTotal = () => {
@@ -79,20 +101,12 @@ export const CartPage = ({ products, coupons }: Props) => {
     }
   }
 
-  const getMaxDiscount = (discounts: { quantity: number; rate: number }[]) => {
-    return discounts.reduce((max, discount) => Math.max(max, discount.rate), 0)
-  }
-
-  const getRemainingStock = (product: Product) => {
-    const cartItem = cart.find((item) => item.product.id === product.id)
-    return product.stock - (cartItem?.quantity || 0)
-  }
-
   const { totalBeforeDiscount, totalAfterDiscount, totalDiscount } = calculateTotal()
 
   const getAppliedDiscount = (item: CartItem) => {
     const { discounts } = item.product
     const { quantity } = item
+
     let appliedDiscount = 0
     for (const discount of discounts) {
       if (quantity >= discount.quantity) {
@@ -178,6 +192,7 @@ export const CartPage = ({ products, coupons }: Props) => {
 
   function CartItemView({ cartItem }: { key: Key; cartItem: CartItem }) {
     const appliedDiscount = getAppliedDiscount(cartItem)
+
     return (
       <div className="flex justify-between items-center bg-white p-3 rounded shadow">
         <div>
@@ -190,6 +205,7 @@ export const CartPage = ({ products, coupons }: Props) => {
             )}
           </span>
         </div>
+
         <div>
           <button
             onClick={() => updateQuantity(cartItem.product.id, cartItem.quantity - 1)}
@@ -215,13 +231,15 @@ export const CartPage = ({ products, coupons }: Props) => {
   }
 
   function ProductView({ product }: { key: Key; product: Product }) {
-    const remainingStock = getRemainingStock(product)
+    const remainingStock = getRemainingStock(product, cart)
+
     return (
       <div data-testid={`product-${product.id}`} className="bg-white p-3 rounded shadow">
         <div className="flex justify-between items-center mb-2">
           <span className="font-semibold">{product.name}</span>
           <span className="text-gray-600">{product.price.toLocaleString()}원</span>
         </div>
+
         <div className="text-sm text-gray-500 mb-2">
           <span className={`font-medium ${remainingStock > 0 ? "text-green-600" : "text-red-600"}`}>
             재고: {remainingStock}개
@@ -232,6 +250,7 @@ export const CartPage = ({ products, coupons }: Props) => {
             </span>
           )}
         </div>
+
         {product.discounts.length > 0 && (
           <ul className="list-disc list-inside text-sm text-gray-500 mb-2">
             {product.discounts.map((discount, index) => (
@@ -241,6 +260,7 @@ export const CartPage = ({ products, coupons }: Props) => {
             ))}
           </ul>
         )}
+
         <button
           onClick={() => addToCart(product)}
           className={`w-full px-3 py-1 rounded ${
