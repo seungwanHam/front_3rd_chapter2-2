@@ -58,15 +58,17 @@ export const [CartPageContextProvider, useCartPage] = createContextHook(() => {
   }
 
   const useAdmin = () => {
-    const [showNewProductForm, setShowNewProductForm] = useState(false)
+    const [isShowNewProductForm, setIsShowNewProductForm] = useState(false)
     const [editingProduct, setEditingProduct] = useState<Product | null>(null)
     const [openProductIds, setOpenProductIds] = useState<Set<string>>(new Set())
 
     return new (class {
-      showNewProductForm = showNewProductForm
-      setShowNewProductForm = setShowNewProductForm
+      isShowNewProductForm = isShowNewProductForm
+      setIsShowNewProductForm = setIsShowNewProductForm
+
       editingProduct = editingProduct
       setEditingProduct = setEditingProduct
+
       openProductIds = openProductIds
       setOpenProductIds = setOpenProductIds
     })()
@@ -76,6 +78,7 @@ export const [CartPageContextProvider, useCartPage] = createContextHook(() => {
     useProduct = useProduct()
     useCart = useCart()
     useCoupon = useCoupon()
+
     useAdmin = useAdmin()
   })()
 })
