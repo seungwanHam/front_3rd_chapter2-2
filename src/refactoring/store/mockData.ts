@@ -1,4 +1,5 @@
-import { Coupon, Product } from "../../types.ts"
+import { Product } from "../entities/product/Product.ts"
+import { Coupon } from "../entities/coupon/Coupon.ts"
 
 export const initialProducts: Product[] = [
   {

@@ -1,6 +1,8 @@
 import { createContext, useContext, useState } from "react"
-import { Cart, Coupon, Product } from "../../types.ts"
 import { initialCoupons, initialProducts } from "./mockData"
+import { Product } from "../entities/product/Product.ts"
+import { Cart } from "../entities/cart/Cart.ts"
+import { Coupon } from "../entities/coupon/Coupon.ts"
 
 export const createContextHook = <T, U>(useStoreState: (props: U) => T) => {
   const Context = createContext({} as T)

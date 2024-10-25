@@ -1,10 +1,10 @@
 import { useState } from "react"
-import { CartPage } from "./components/CartPage.tsx"
-import { AdminPage } from "./components/AdminPage.tsx"
+import { CartPage } from "./pages/CartPage/CartPage.tsx"
+import { AdminPage } from "./pages/AdminPage/AdminPage.tsx"
 import { CartPageContextProvider } from "./store/store.tsx"
 
 const App = () => {
-  const [isAdmin, setIsAdmin] = useState(true)
+  const [isAdmin, setIsAdmin] = useState(false)
 
   return (
     <div className="min-h-screen bg-gray-100">
@@ -19,6 +19,7 @@ const App = () => {
           </button>
         </div>
       </nav>
+
       <main className="container mx-auto mt-6">
         <CartPageContextProvider>{isAdmin ? <AdminPage /> : <CartPage />}</CartPageContextProvider>
       </main>

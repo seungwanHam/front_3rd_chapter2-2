@@ -1,36 +1,17 @@
 import { Key, useState } from "react"
-import { Coupon, Discount, Product } from "../../types"
-import { useAdmin, useCoupon, useProduct } from "../store/store.tsx"
-
-// entities/Product
-const addProductDiscount = (prdocut: Product, newDiscount: Discount) => ({
-  ...prdocut,
-  discounts: [...prdocut.discounts, newDiscount],
-})
-
-const removeProductDiscountByIndex = (product: Product, index: number) => ({
-  ...product,
-  discounts: product.discounts.filter((_, i) => i !== index),
-})
-
-// entities/Products
-const getProductById = (products: Product[], productId: string) => products.find((p) => p.id === productId)
-
-const replaceProductInProducts = (prevProducts: Product[], updatedProduct: Product) => {
-  return prevProducts.map((p) => (p.id === updatedProduct.id ? updatedProduct : p))
-}
-
-const updateEditingProductName = (editingProduct: Product | null, name: string) => {
-  return editingProduct ? { ...editingProduct, name: name } : null
-}
-
-const updateEditingProductPrice = (editingProduct: Product | null, price: number) => {
-  return editingProduct ? { ...editingProduct, price: price } : null
-}
-
-const updateEditingProductStock = (editingProduct: Product | null, stock: number) => {
-  return editingProduct ? { ...editingProduct, stock: stock } : null
-}
+import { useAdmin, useCoupon, useProduct } from "../../store/store.tsx"
+import {
+  addProductDiscount,
+  Discount,
+  getProductById,
+  Product,
+  removeProductDiscountByIndex,
+  replaceProductInProducts,
+  updateEditingProductName,
+  updateEditingProductPrice,
+  updateEditingProductStock,
+} from "../../entities/product/Product.ts"
+import { Coupon } from "../../entities/coupon/Coupon.ts"
 
 // widgets/Product/ui
 function ModifyProductDiscountForm({ product }: { product: Product }) {

@@ -1,11 +1,13 @@
 import { useState } from "react"
 import { describe, expect, test } from "vitest"
 import { act, fireEvent, render, renderHook, screen, within } from "@testing-library/react"
-import { CartPage } from "../../refactoring/components/CartPage"
-import { AdminPage } from "../../refactoring/components/AdminPage"
-import { CartItem, Coupon, Product } from "../../types"
+import { CartPage } from "../../refactoring/pages/CartPage/CartPage.tsx"
+import { AdminPage } from "../../refactoring/pages/AdminPage/AdminPage.tsx"
 import { useCart, useCoupons, useProducts } from "../../refactoring/hooks"
 import * as cartUtils from "../../refactoring/hooks/utils/cartUtils"
+import { Product } from "../../refactoring/entities/product/Product.ts"
+import { CartItem } from "../../refactoring/entities/cart/Cart.ts"
+import { Coupon } from "../../refactoring/entities/coupon/Coupon.ts"
 
 const mockProducts: Product[] = [
   {
